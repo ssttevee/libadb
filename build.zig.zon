@@ -1,0 +1,20 @@
+.{
+    .name = "adb",
+    .version = "0.0.0",
+    .minimum_zig_version = "0.13.0",
+    .dependencies = .{
+        .libusb = .{
+            .url = "https://github.com/ssttevee/zig-libusb/archive/refs/tags/1.0.27.tar.gz",
+            .hash = "122004f2d84d2925d8e486d8ce8f21e81f7f86ac86397f0eb454d461ffc8c70a17e0",
+        },
+    },
+    .paths = .{
+        "src/transport",
+        "src/auth.zig",
+        "src/host.zig",
+        "src/protocol.zig",
+        "src/root.zig",
+        "src/services.zig",
+        "src/transport.zig",
+    },
+}
