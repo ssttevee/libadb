@@ -8,6 +8,29 @@ test {
     _ = c;
 }
 
+pub fn getUserKeyPath(allocator: std.mem.Allocator) !?[]u8 {
+    var env = try std.process.getEnvMap(allocator);
+    defer env.deinit();
+
+    if (env.get("HOME") orelse env.get("UserProfile")) |homedir| {
+        return try std.fs.path.join(allocator, &.{ homedir, ".android", "adbkey" });
+    }
+
+    std.log.err("failed to find adb key location", .{});
+
+    return null;
+}
+
+pub fn loadUserKey(allocator: std.mem.Allocator) !?Key {
+    if (try getUserKeyPath(allocator)) |keypath| {
+        defer allocator.free(keypath);
+
+        return try readKeyFile(allocator, keypath);
+    }
+
+    return null;
+}
+
 pub const Key = *opaque {
     pub fn deinit(self: Key) void {
         c.RSA_free(@ptrCast(self));
@@ -19,6 +42,7 @@ pub fn readKeyFile(allocator: std.mem.Allocator, file: []const u8) !Key {
     defer f.close();
 
     const buf = try f.readToEndAlloc(allocator, std.math.maxInt(usize));
+    defer allocator.free(buf);
 
     const bio = c.BIO_new(c.BIO_s_mem());
     defer c.BIO_free_all(bio);

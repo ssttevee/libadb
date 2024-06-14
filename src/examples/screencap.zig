@@ -65,21 +65,7 @@ pub fn main() !void {
         break :blk null;
     };
 
-    const keyfile = blk: {
-        var env = try std.process.getEnvMap(allocator);
-        defer env.deinit();
-
-        if (env.get("HOME") orelse env.get("UserProfile")) |homedir| {
-            break :blk try std.fs.path.join(allocator, &.{ homedir, ".android", "adbkey" });
-        }
-
-        std.log.err("failed to find adb key location", .{});
-        return;
-    };
-
-    defer allocator.free(keyfile);
-
-    const key = try adb.auth.readKeyFile(allocator, keyfile);
+    const key = try adb.auth.loadUserKey(allocator) orelse return;
     defer key.deinit();
 
     if (addr == null) {
@@ -96,7 +82,6 @@ pub fn main() !void {
 
     const transport = conn.transport();
 
-    // start handshake
     var ca_bundle = std.crypto.Certificate.Bundle{};
     defer ca_bundle.deinit(allocator);
 
@@ -119,8 +104,6 @@ pub fn main() !void {
     while (features.next()) |feature| {
         std.log.info("  {s}", .{feature});
     }
-
-    // at this point, the handshake is complete and regular operations may start
 
     // try simulating adb exec-out screencap -p
 
