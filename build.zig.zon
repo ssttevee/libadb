@@ -16,5 +16,7 @@
         "src/root.zig",
         "src/services.zig",
         "src/transport.zig",
+        "build.zig",
+        "build.zig.zon",
     },
 }
